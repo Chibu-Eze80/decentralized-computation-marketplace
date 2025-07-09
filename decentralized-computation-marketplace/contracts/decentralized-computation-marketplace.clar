@@ -85,3 +85,81 @@
     verification-stake: uint
   }
 )
+
+;; Skills and Certification Tracking
+(define-map worker-skills
+  principal
+  {
+    certified-skills: (list 10 (string-utf8 50)),
+    skill-levels: (list 10 uint)
+  }
+)
+
+;; Dynamic Pricing Mechanism
+(define-map task-pricing
+  {task-id: uint}
+  {
+    base-price: uint,
+    dynamic-multiplier: uint,
+    price-adjusted-timestamp: uint
+  }
+)
+
+;; Advanced Worker Registration with Skills
+(define-public (register-worker-skills 
+  (skills (list 10 (string-utf8 50)))
+  (skill-levels (list 10 uint))
+)
+  (begin
+    ;; Validate input lengths match
+    (asserts! (is-eq (len skills) (len skill-levels)) ERR-UNAUTHORIZED)
+    
+    ;; Register skills for worker
+    (map-set worker-skills 
+      tx-sender 
+      {
+        certified-skills: skills,
+        skill-levels: skill-levels
+      }
+    )
+    
+    (ok true)
+  )
+)
+
+;; Comprehensive Verification Mechanism
+(define-public (verify-task-result 
+  (task-id uint)
+  (selected-result-hash (buff 32))
+  (verifier-stake uint)
+)
+  (let 
+    ((task (unwrap! (map-get? tasks {task-id: task-id}) ERR-TASK-NOT-FOUND))
+     (current-state (get state task))
+     (result-submissions (get result-submissions task))
+     (verification-threshold (get verification-threshold task))
+    )
+    
+    ;; Verification period checks
+    (asserts! (is-eq current-state TASK-SUBMITTED) ERR-INVALID-TASK-STATE)
+    (asserts! (< stacks-block-height (get challenge-period-end task)) ERR-CHALLENGE-PERIOD-ACTIVE)
+    
+    ;; Record verification
+    (map-set task-verifications
+      {task-id: task-id, verifier: tx-sender}
+      {
+        verification-hash: selected-result-hash,
+        verification-timestamp: stacks-block-height,
+        verification-stake: verifier-stake
+      }
+    )
+    
+    ;; Update task state if verification threshold met
+    (map-set tasks 
+      {task-id: task-id}
+      (merge task {state: TASK-VERIFIED})
+    )
+    
+    (ok true)
+  )
+)
