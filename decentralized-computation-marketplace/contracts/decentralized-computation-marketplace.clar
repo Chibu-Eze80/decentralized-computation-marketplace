@@ -226,3 +226,38 @@
     minimum-reputation: uint
   }
 )
+
+;; Market status
+(define-data-var market-active bool true)
+
+;; User dashboard stats
+(define-map user-stats
+  principal
+  {
+    total-earned: uint,
+    total-spent: uint,
+    tasks-created: uint,
+    tasks-completed: uint,
+    avg-task-complexity: uint,
+    favorite-categories: (list 3 (string-utf8 50)),
+    last-login: uint,
+    membership-tier: uint
+  }
+)
+
+;; Task templates
+(define-map task-templates
+  {template-id: uint}
+  {
+    name: (string-utf8 50),
+    description: (string-utf8 200),
+    default-bounty: uint,
+    default-stake: uint,
+    default-complexity: uint,
+    category: (string-utf8 50),
+    creator: principal,
+    is-public: bool,
+    created-at: uint,
+    metadata: (string-utf8 200)
+  }
+)
