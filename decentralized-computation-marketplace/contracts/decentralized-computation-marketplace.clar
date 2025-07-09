@@ -313,3 +313,50 @@
     })
   }
 )
+
+;; Map to track collaboration on tasks
+(define-map task-collaboration
+  {task-id: uint}
+  {
+    communication-logs: (list 50 {
+      sender: principal,
+      timestamp: uint,
+      message-hash: (buff 32),
+      encrypted: bool
+    }),
+    shared-resources: (list 20 {
+      name: (string-utf8 100),
+      resource-hash: (buff 32),
+      uploader: principal,
+      upload-timestamp: uint,
+      access-control: (list 10 principal)
+    }),
+    revision-history: (list 10 {
+      version: uint,
+      changes: (string-utf8 200),
+      author: principal,
+      timestamp: uint
+    })
+  }
+)
+
+;; Map to track worker certifications
+(define-map worker-certifications
+  principal
+  {
+    certificates: (list 10 {
+      certification-name: (string-utf8 100),
+      issuer: principal,
+      issue-date: uint,
+      expiry-date: uint,
+      certification-hash: (buff 32),
+      revoked: bool
+    }),
+    specializations: (list 5 {
+      domain: (string-utf8 50),
+      expertise-level: uint,
+      years-experience: uint,
+      endorsements: (list 10 principal)
+    })
+  }
+)
