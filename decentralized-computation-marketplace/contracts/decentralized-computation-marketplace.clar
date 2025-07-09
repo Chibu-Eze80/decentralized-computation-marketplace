@@ -518,3 +518,46 @@
     (ok true)
   )
 )
+
+;; Function to validate automated task execution
+(define-public (validate-automated-execution
+  (task-id uint)
+  (validation-proof (buff 32))
+)
+  (let 
+    ((task (unwrap! (map-get? tasks {task-id: task-id}) ERR-TASK-NOT-FOUND))
+     (automation (unwrap! (map-get? automated-task-execution {task-id: task-id}) ERR-UNAUTHORIZED))
+    )
+    
+    ;; Update automation status
+    (map-set automated-task-execution
+      {task-id: task-id}
+      (merge automation {status: u2})
+    )
+    
+    ;; Update task state
+    (map-set tasks
+      {task-id: task-id}
+      (merge task {state: TASK-VERIFIED})
+    )
+    
+    (ok true)
+  )
+)
+
+;; Map to track governance proposals
+(define-map governance-proposals
+  {proposal-id: uint}
+  {
+    proposer: principal,
+    proposal-type: uint,  ;; 0=parameter, 1=feature, 2=rule
+    proposal-description: (string-utf8 500),
+    proposal-data: (buff 32),
+    votes-for: uint,
+    votes-against: uint,
+    voting-deadline: uint,
+    status: uint,  ;; 0=active, 1=passed, 2=rejected
+    executed: bool,
+    execution-data: (optional (buff 32))
+  }
+)
