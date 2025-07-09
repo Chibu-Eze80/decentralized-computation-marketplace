@@ -360,3 +360,72 @@
     })
   }
 )
+
+;; Map to track certification authorities
+(define-map certification-authorities
+  principal
+  {
+    authority-name: (string-utf8 100),
+    domains: (list 10 (string-utf8 50)),
+    authority-reputation: uint,
+    registered-at: uint,
+    authority-stake: uint
+  }
+)
+
+;; Function to register as certification authority
+(define-public (register-certification-authority
+  (authority-name (string-utf8 100))
+  (domains (list 10 (string-utf8 50)))
+  (authority-stake uint)
+)
+  (begin
+    ;; Transfer stake to contract
+    (try! (stx-transfer? authority-stake tx-sender (as-contract tx-sender)))
+    
+    ;; Register authority
+    (map-set certification-authorities
+      tx-sender
+      {
+        authority-name: authority-name,
+        domains: domains,
+        authority-reputation: u0,
+        registered-at: stacks-block-height,
+        authority-stake: authority-stake
+      }
+    )
+    
+    (ok true)
+  )
+)
+
+;; Map to track task marketplace data
+(define-map task-marketplace
+  {task-id: uint}
+  {
+    tags: (list 10 (string-utf8 50)),
+    visibility: uint,  ;; 0=private, 1=public, 2=invite-only
+    listing-expiry: uint,
+    promoted: bool,
+    promotion-cost: uint,
+    views: uint,
+    applications: (list 20 {
+      applicant: principal,
+      application-text: (string-utf8 200),
+      proposed-price: uint,
+      proposed-timeframe: uint,
+      status: uint  ;; 0=pending, 1=accepted, 2=rejected
+    })
+  }
+)
+
+;; Map to track task recommendations
+(define-map task-recommendations
+  principal
+  {
+    recommended-tasks: (list 10 uint),
+    recommendation-reason: (list 10 (string-utf8 100)),
+    recommendation-score: (list 10 uint),
+    last-updated: uint
+  }
+)
